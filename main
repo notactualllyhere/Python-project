@@ -1,0 +1,46 @@
+from random import randint
+
+
+PAC = "PAC"
+SHO = "SHO"
+PAS = "PAS"
+DRI = "DRI"
+DEF = "DEF"
+PHY = "PHY"
+
+STAT_NAMES = (PAC, SHO, PAS, DRI, DEF, PHY)
+
+SUB_PAC = ("sprint_speed", "acceleration")
+SUB_SHO = ("finishing", "shot_power", "long_shots", "volleys", "penalties", "attacking_positioning")
+SUB_PAS = ("short_passing", "long_passing", "vision", "crossing", "free_kick_accuracy")
+SUB_DRI = ("agility", "balance", "reactions", "ball_control", "dribbling", "composure")
+SUB_DEF = ("interceptions", "marking", "standing_tackle", "sliding_tackle", "heading_accuracy")
+SUB_PHY = ("jumping", "stamina", "strength", "aggression")
+
+SUB_STATS = {
+    PAC: SUB_PAC,
+    SHO: SUB_SHO,
+    PAS: SUB_PAS,
+    DRI: SUB_DRI,
+    DEF: SUB_DEF,
+    PHY: SUB_PHY,
+}
+
+
+def generate_stats() -> dict[str, int]:
+    stats = {
+        sub_stat: randint(1, 99)
+        for sub_stats in SUB_STATS.values()
+        for sub_stat in sub_stats
+    }
+
+    for stat_name, sub_stats in SUB_STATS.items():
+        stats[stat_name] = round(
+            sum(stats[sub_stat] for sub_stat in sub_stats) / len(sub_stats)
+        )
+
+    return stats
+
+
+if __name__ == "__main__":
+    print(generate_stats())
