@@ -1,2 +1,2 @@
-# Python-project
-Personal python project
+# Stats Generator
+Just a randomized generator of player attributes
