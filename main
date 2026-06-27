@@ -1,4 +1,8 @@
+import shutil
+from pathlib import Path
 from random import randint
+
+from PIL import Image, ImageDraw, ImageFont
 
 
 PAC = "PAC"
@@ -26,6 +30,11 @@ SUB_STATS = {
     PHY: SUB_PHY,
 }
 
+BASE_DIR = Path(__file__).resolve().parent
+TEMPLATE_PATH = BASE_DIR / "assets" / "blank-card-template.jpeg"
+OUTPUT_PATH = BASE_DIR / "Blank Fut Card.jpeg"
+FONT_PATH = BASE_DIR / "assets" / "din-pro-condensed-bold.ttf"
+
 
 def generate_stats() -> dict[str, int]:
     stats = {
@@ -42,5 +51,70 @@ def generate_stats() -> dict[str, int]:
     return stats
 
 
+def ensure_template() -> None:
+    shutil.copyfile(TEMPLATE_PATH, OUTPUT_PATH)
+
+
+def print_stats(stats: dict[str, int]) -> None:
+    print("Generated stats:")
+    for stat_name in STAT_NAMES:
+        sub_stats = SUB_STATS[stat_name]
+        sub_stat_output = ", ".join(
+            f"{sub_stat}={stats[sub_stat]}" for sub_stat in sub_stats
+        )
+        print(f"{stat_name}: {stats[stat_name]} | sub-stats: {sub_stat_output}")
+
+
+def draw_stats_on_card(stats: dict[str, int]) -> None:
+    try:
+        ensure_template()
+    except FileNotFoundError:
+        print("Template card not found; skipping image generation.")
+        return
+
+    image = Image.open(OUTPUT_PATH).convert("RGB")
+    draw = ImageDraw.Draw(image)
+    font = ImageFont.truetype(str(FONT_PATH), 54)
+
+    positions = [
+        (115, 780, PAC),
+        (115, 860, SHO),
+        (115, 945, PAS),
+        (458, 780, DRI),
+        (458, 860, DEF),
+        (458, 945, PHY),
+    ]
+
+    for x, y, stat_name in positions:
+        number = str(stats[stat_name])
+        bbox = draw.textbbox((x, y), number, font=font)
+        padding = 12
+        box = (
+            bbox[0] - padding,
+            bbox[1] - padding,
+            bbox[2] + padding,
+            bbox[3] + padding,
+        )
+        draw.rectangle(box, fill=(5, 25, 125))
+        draw.rounded_rectangle(
+            box,
+            outline=(255, 255, 255),
+            width=2,
+            radius=10,
+        )
+        draw.text(
+            (x, y),
+            number,
+            font=font,
+            fill=(255, 255, 255),
+            stroke_width=2,
+            stroke_fill=(0, 0, 0),
+        )
+
+    image.save(OUTPUT_PATH)
+
+
 if __name__ == "__main__":
-    print(generate_stats())
+    stats = generate_stats()
+    print_stats(stats)
+    draw_stats_on_card(stats)
